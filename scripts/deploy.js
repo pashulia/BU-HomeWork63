@@ -7,21 +7,57 @@
 const hre = require("hardhat");
 
 async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const unlockTime = currentTimestampInSeconds + 60;
+  // const currentTimestampInSeconds = Math.round(Date.now() / 1000);
+  // const unlockTime = currentTimestampInSeconds + 60;
 
-  const lockedAmount = hre.ethers.utils.parseEther("0.001");
+  // const lockedAmount = hre.ethers.utils.parseEther("0.001");
 
-  const Lock = await hre.ethers.getContractFactory("Lock");
-  const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
+  const Example1 = await ethers.getContractFactory("Example1");
+  const example1 = await Example1.deploy();
 
-  await lock.deployed();
+  console.log("Адрес контракта Example1: ", example1.address );
 
-  console.log(
-    `Lock with ${ethers.utils.formatEther(
-      lockedAmount
-    )}ETH and unlock timestamp ${unlockTime} deployed to ${lock.address}`
-  );
+  const Example2 = await ethers.getContractFactory("Example2");
+  const example2 = await Example2.deploy(example1.address);
+
+  console.log("Адрес контракта Example2: ", example2.address );
+
+  console.log( "\n === setNumber Example1 === \n");
+  await example1.setNumber(1);
+  console.log(await example1.getNumber());
+
+  console.log( "\n === setNumber Example2 === \n");
+  await example2.setNumber(2);
+  console.log(await example2.getNumber());
+
+  console.log( "\n === setStr Example1 === \n");
+  await example1.setStr("hi");
+  console.log(await example1.getStr());
+
+  console.log( "\n === setStr Example2 === \n");
+  await example2.setStr("hello");
+  console.log(await example2.getStr());
+
+  const wallet = ethers.Wallet.createRandom();
+  console.log(wallet);
+  await hre.network.provider.send("hardhat_setBalance", [
+    wallet.address,
+    "0x1000"
+  ]);
+
+  await hre.network.provider.send("hardhat_setBalance", [
+    example1.address,
+    "0x1000"
+  ]);
+
+  const contractBal = await ethers.provider.getBalance(wallet.address);
+  console.log(contractBal);
+
+  const res = await example1.sendEth(wallet.address, 500);
+  console.log(res);
+
+  const res2 = await example2.sendEth(wallet.address, 500);
+  console.log(res2);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
